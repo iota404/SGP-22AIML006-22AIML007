@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout - CampusEats</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome CSS -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    /* Navbar styles */
+    .navbar {
+      background-color: #007bff;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: fadeIn 0.5s ease; /* Fade-in animation */
+    }
+  
+    .navbar h1 {
+      margin: 0;
+    }
+  
+    .navbar button {
+      padding: 10px 20px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+  
+    .navbar button:hover {
+      background-color: #0056b3;
+    }
+
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .qr-code {
+      display: block;
+      margin: 0 auto;
+      margin-bottom: 20px;
+      max-width: 200px;
+    }
+
+    .order-status {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .disclaimer {
+      font-style: italic;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+  
+    <div>
+      <button onclick="goHome()">Home</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
+  <div class="container">
+    <h1>Checkout</h1>
+
+    <table id="orderSummary">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="orderItems"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3" style="text-align: right;">Total:</td>
+          <td id="totalPrice"></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <img src="qr.png" alt="QR Code" class="qr-code">
+
+    <div class="order-status">
+      <p>Order Status: <span id="orderStatus">Pending</span></p>
+    </div>
+
+    <p class="disclaimer">Your order will be placed upon payment.</p>
+  </div>
+
+  <script>
+    let username;
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get restaurant name and username from URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const restaurantName = urlParams.get('resturant');
+      username = urlParams.get('username');
+      const orderId = urlParams.get('orderId');
+
+      // Fetch order status based on orderId
+  fetch(`/order/status?orderId=${orderId}`)
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Failed to fetch order status');
+    }
+    return response.json();
+  })
+  .then(data => {
+    // Update order status in the HTML
+    const orderStatusElement = document.getElementById('orderStatus');
+    orderStatusElement.textContent = data.status;
+  })
+  .catch(error => {
+    console.error('Error fetching order status:', error);
+    // Handle error (e.g., display an alert)
+  });
+
+
+    
+      // Fetch order data based on restaurant name and username
+      fetch(`/orders/?resturant=${restaurantName}&username=${username}&orderId=${orderId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch order data');
+          }
+          return response.json();
+        })
+        .then(orderData => {
+          // Display order summary using the fetched data
+          displayOrderSummary(orderData);
+          console.log(orderData);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          // Handle error (e.g., display an alert)
+        });
+    });
+    
+    function displayOrderSummary(orderData) {
+      const orderItems = document.getElementById('orderItems');
+      let totalPrice = 0;
+    
+      // Check if orderData is an array
+      if (Array.isArray(orderData)) {
+        // Iterate through each order in the order data
+        orderData.forEach(order => {
+          // Iterate through each item in the order
+          order.items.forEach(item => {
+            const { menuItem, quantity, price } = item;
+            const total = quantity * price;
+            totalPrice += total;
+    
+            const row = `
+              <tr>
+                <td>${menuItem}</td>
+                <td>${quantity}</td>
+                <td>₹${price}</td>
+                <td>₹${total}</td>
+              </tr>
+            `;
+            orderItems.innerHTML += row;
+          });
+        });
+      } else {
+        // Handle the case when orderData is not an array (e.g., empty response)
+        console.error('No order data found');
+      }
+    
+      // Display total price
+      document.getElementById('totalPrice').textContent = `₹${totalPrice}`;
+    
+      // Generate and display QR code (you'll need to replace '#' with the actual URL for payment)
+      generateQRCode();
+    }
+
+    function goHome() {
+      window.location.href = `http://localhost:5500/home?username=${username}`;
+    }
+
+    function logout() {
+      window.location.href = `http://localhost:5500/login`;
+    }
+    
+  </script>
+</body>
+</html>

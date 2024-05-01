@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome CSS -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Keyframes for fade-in animation */
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Keyframes for bounce animation */
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* Table animation */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      animation: fadeIn 1s ease-in-out; /* Apply fade-in animation to the table */
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    /* Button container animation */
+    .button-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: fadeIn 1s ease-in-out; /* Apply fade-in animation to the button container */
+    }
+
+    button {
+      padding: 8px 16px;
+      margin: 0 5px;
+      cursor: pointer;
+      transition: transform 0.3s ease; /* Apply smooth transform transition to buttons */
+    }
+
+    button.plus {
+      background-color: transparent;
+      border: none;
+      font-size: 24px;
+    }
+
+    button.minus {
+      background-color: transparent;
+      border: none;
+      font-size: 24px;
+    }
+
+    /* Additional styles for price */
+    .price {
+      font-weight: bold;
+    }
+
+    /* Styling for hover effect on buttons */
+    button.plus:hover, button.minus:hover {
+      filter: brightness(110%); /* Increase brightness on hover */
+    }
+
+    /* Styling for hover effect on table rows */
+    tr:hover {
+      background-color: #f0f0f0;
+    }
+
+    /* Cart animation */
+    .cart {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      animation: fadeIn 1s ease-in-out; /* Apply fade-in animation to the cart */
+    }
+
+    /* Navbar styles */
+   .navbar {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .navbar h1 {
+    margin: 0;
+  }
+
+  .navbar button {
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+  }
+
+  .navbar button:hover {
+    background-color: #0056b3;
+  }
+  
+    /* Cart icon */
+    .cart-icon {
+      font-size: 24px;
+      color: #007bff;
+      margin-right: 5px;
+    }
+
+    /* Style for the Place Order button */
+    .place-order-button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: transform 0.3s ease; /* Apply smooth transform transition to button */
+    }
+
+    .place-order-button:hover {
+      background-color: #0056b3;
+    }
+
+    .place-order-button.clicked {
+      animation: bounce 0.5s ease; /* Apply bounce animation to the button when clicked */
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <h1>Menu</h1>
+    <div>
+      <button onclick="goHome()">Home</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+</div>
+
+  <h1 id="canteenHeading">Danny's Menu</h1>
+
+  <table id="menuTable">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Price (₹)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Here items are shown automatically -->
+    </tbody>
+  </table>
+
+  <div class="cart">
+    <h2><i class="fas fa-shopping-cart cart-icon" onclick="animateCartIcon()"></i> Cart</h2> <!-- Cart icon -->
+    <ul id="cartItems"></ul>
+    <p>Total: ₹<span id="totalAmount">0</span></p>
+    <button class="place-order-button" onclick="placeOrder()">Place Order</button>
+  </div>
+
+  <script>
+    const plusButtons = document.querySelectorAll('.plus');
+    const minusButtons = document.querySelectorAll('.minus');
+    const cartItems = document.getElementById('cartItems');
+    const totalAmountElement = document.getElementById('totalAmount');
+    const placeOrderButton = document.querySelector('.place-order-button');
+    let totalAmount = 0;
+    let cart = [];
+    let menuitems =  {};
+    let username;
+    let resturant;
+    let totalCost = 0;
+    const menuTable = document.getElementById("menuTable");
+
+    // Fetch and populate menu items from the server
+    function fetchMenuItems(resturant) {
+      fetch(`/menu/${resturant}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch menu items');
+          }
+          return response.json();
+        })
+        .then(menuItems => {
+          menuitems = menuItems;
+          menuItems.forEach(item => {
+            addRowToMenuTable(item);
+          });
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          // Handle error (e.g., display an alert)
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      // Call fetchMenuItems function with the restaurant's name
+      const urlParams = new URLSearchParams(window.location.search);
+      resturant = urlParams.get('resturant');
+      username =  urlParams.get('username');
+
+      const canteenHeading = document.getElementById("canteenHeading");
+  switch (resturant) {
+    case 'danny':
+      canteenHeading.textContent = "Danny's Menu";
+      break;
+    case 'sweetspot':
+      canteenHeading.textContent = "Sweet Spot's Menu";
+      break;
+    case 'pramukhpreet':
+      canteenHeading.textContent = "Pramukh Preet's Menu";
+      break;
+      case 'snjoshi':
+      canteenHeading.textContent = "SN Joshi's's Menu";
+      break;
+      case 'nidhisha':
+      canteenHeading.textContent = "Nidhisha's Menu";
+      break;
+  }
+      fetchMenuItems(resturant);
+
+
+    });
+
+    /// Function to add a row to the menu table
+    function addRowToMenuTable(item) {
+      console.log('Adding menu item:', item);
+      const row = menuTable.querySelector("tbody").insertRow();
+      row.innerHTML = `
+        <td>${item.name}</td>
+        <td>${item.price.toFixed(2)}</td>
+        <td>
+          <button class="plus-button" onclick="addToCart('${item._id}')">+</button>
+          <button class="minus-button" onclick="removeFromCart('${item._id}')">-</button>
+        </td>
+      `;
+    }
+
+    plusButtons.forEach((button, index) => {
+      button.addEventListener('click', () => {
+        const row = button.closest('tr');
+        const itemName = row.querySelector('td:first-child').textContent;
+        const itemPrice = parseInt(row.querySelector('.price').textContent.replace('₹', ''));
+        addToCart(itemName, itemPrice);
+        animateButton(button); // Animate the button when clicked
+      });
+    });
+
+    minusButtons.forEach((button, index) => {
+      button.addEventListener('click', () => {
+        const row = button.closest('tr');
+        const itemName = row.querySelector('.item-name').textContent;
+        const itemPrice = parseInt(row.querySelector('.price').textContent.replace('₹', ''));
+        deductFromCart(itemName, itemPrice);
+        animateButton(button); // Animate the button when clicked
+      });
+    });
+
+    // Function to add an item to the cart
+    // Function to add an item to the cart
+function addToCart(itemId) {
+  // Find the item in the menu items
+  const selectedItem = menuitems.find(item => item._id === itemId);
+
+  if (selectedItem) {
+    // Check if the item is already in the cart
+    const existingCartItem = cart.find(item => item._id === itemId);
+
+    if (existingCartItem) {
+      // If the item is already in the cart, increase its quantity
+      existingCartItem.quantity++;
+
+      // Update the total cost by adding the price of the selected item
+      totalCost += selectedItem.price;
+    } else {
+      // If the item is not in the cart, add it with a quantity of 1
+      cart.push({
+        _id: selectedItem._id,
+        menuItem: selectedItem.name,
+        quantity: 1,
+        price: selectedItem.price
+      });
+
+      // Update the total cost by adding the price of the selected item
+      totalCost += selectedItem.price;
+    }
+  }
+
+  // Update the cart display
+  updateCartDisplay();
+}
+
+
+// Function to remove an item from the cart
+function removeFromCart(itemId) {
+
+  // Find the index of the item in the cart
+  const index = cart.findIndex(item => item._id === itemId);
+  
+  if (index !== -1) {
+
+    // Deduct the cost of the removed item from the total cost
+    totalCost -= cart[index].price;
+
+    // If the item is found, decrease its quantity
+    cart[index].quantity--;
+
+    // If the quantity becomes 0, remove the item from the cart
+    if (cart[index].quantity === 0) {
+      cart.splice(index, 1);
+    }
+  }
+
+  // Update the cart display
+  updateCartDisplay();
+}
+
+// Function to update the cart display
+function updateCartDisplay() {
+  const cartContainer = document.getElementById("cartItems");
+  cartContainer.innerHTML = ""; // Clear previous content
+
+  // Loop through each item in the cart
+  cart.forEach(item => {
+   // let itemTotalCost = item.price * item.quantity;
+    //totalCost += item.price;
+
+    // Create a new element for the item in the cart
+    const itemElement = document.createElement("div");
+    itemElement.classList.add("cart-item");
+    itemElement.innerHTML = `
+      <span>${item.menuItem} : ${item.quantity}</span>
+    `;
+    cartContainer.appendChild(itemElement);
+
+    
+  });
+  const cost = document.getElementById("totalAmount");
+  cost.innerText= "Total: ₹" + totalCost;
+
+  
+}
+
+function placeOrder() {
+  const cartCopy = [...cart];
+  // Prepare order data
+  const orderData = {
+    user: username, // Get user dynamically
+    restaurantName: resturant, // Get restaurant name dynamically
+    items: cartCopy, // Cart items
+    totalPrice: totalCost, // Total price
+    status: 'pending'
+  };
+
+  // Send POST request to server to place the order
+  fetch('/place-order', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(orderData)
+  })
+  .then(response => {
+      if (!response.ok) {
+          throw new Error('Failed to place order');
+      }
+      return response.json();
+  })
+  .then(data => {
+    const orderId = String(data.order._id); // Save the order ID as a string
+    console.log('Order placed successfully:', orderId);
+    console.log(typeof data.order._id);
+    
+    // Redirect to checkout page after obtaining the order ID
+    window.location.href = `http://localhost:5500/checkout?username=${username}&resturant=${resturant}&orderId=${orderId}`;
+  })
+  .catch(error => {
+      console.error('Error placing order:', error);
+      // Handle error (e.g., display an alert to the user)
+  });
+}
+
+    function animateButton(button) {
+      button.style.transform = 'scale(0.5)'; // Apply scale down animation to button
+      setTimeout(() => {
+        button.style.transform = 'scale(1)'; // Reset button scale after animation
+      }, 100);
+    }
+
+    function animateCartIcon() {
+      const cartIcon = document.querySelector('.cart-icon');
+      cartIcon.style.animation = 'bounce 0.5s ease'; // Apply bounce animation to cart icon
+      setTimeout(() => {
+        cartIcon.style.animation = 'none'; // Reset cart icon animation after animation completes
+      }, 500);
+    }
+
+    function goHome() {
+      window.location.href = `http://localhost:5500/home?username=${username}`;
+    }
+
+    function logout() {
+      window.location.href = `http://localhost:5500/login`;
+    }
+    
+  </script>
+</body>
+</html>

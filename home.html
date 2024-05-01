@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - CampusEats</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 20px;
+      padding: 30px;
+      background-color: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      animation: fadeIn 0.5s ease; /* Fade-in animation */
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    h1 {
+      text-align: center;
+      color: #333333;
+      margin-bottom: 20px;
+      font-size: 2.5rem;
+      animation: slideInDown 1s ease; /* Slide-in animation */
+    }
+
+    @keyframes slideInDown {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    h2 {
+      text-align: center;
+      color: #666666;
+      margin-bottom: 30px;
+      font-size: 1.5rem;
+      animation: slideInUp 1s ease; /* Slide-in animation */
+    }
+
+    @keyframes slideInUp {
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .canteen-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeInUp 1s ease; /* Fade-in and slide-up animation */
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .canteen-item {
+      margin: 20px;
+      text-align: center;
+      animation: scaleIn 0.5s ease; /* Scale-in animation */
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0);
+      }
+      to {
+        transform: scale(1);
+      }
+    }
+
+    .canteen-item button {
+      padding: 15px 50px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background-color: #007bff;
+      color: #ffffff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      animation: fadeIn 0.5s ease, slideInUp 1s ease; /* Multiple animations */
+    }
+
+    .canteen-item button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  
+  <!-- Main content -->
+  <div class="container">
+    <h1>Welcome to CampusEats</h1>
+    <h2>Where would you like to order from today?</h2>
+    <div class="canteen-list">
+      <div class="canteen-item">
+        <button onclick="redirectToDanny()">Danny's</button>
+      </div>
+      <div class="canteen-item">
+        <button onclick="redirectTosweetspot()">Sweet Spot</button>
+      </div>
+      <div class="canteen-item">
+        <button onclick="redirectTopramukhpreet()">Pramukh Preet</button>
+      </div>
+      <div class="canteen-item">
+        <button onclick="redirectTosnjoshi()">SN Joshi</button>
+      </div>
+      <div class="canteen-item">
+        <button onclick="redirectTonidhisha()">Nidhisha</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let username;
+    document.addEventListener("DOMContentLoaded", function() {
+      // Call fetchMenuItems function with the restaurant's username
+      const urlParams = new URLSearchParams(window.location.search);
+      username = urlParams.get('username');
+    });
+//danny
+    function redirectToDanny() {
+      window.location.href = `http://localhost:5500/menu?username=${username}&resturant=danny`;
+    }
+
+    //sweetspot
+    function redirectTosweetspot() {
+      window.location.href = `http://localhost:5500/menu?username=${username}&resturant=sweetspot`;
+    }
+
+    //pramukhpreet
+    function redirectTopramukhpreet() {
+      window.location.href = `http://localhost:5500/menu?username=${username}&resturant=pramukhpreet`;
+    }
+
+    //snjoshi
+    function redirectTosnjoshi() {
+      window.location.href = `http://localhost:5500/menu?username=${username}&resturant=snjoshi`;
+    }
+
+    //nidhisha
+    function redirectTonidhisha() {
+      window.location.href = `http://localhost:5500/menu?username=${username}&resturant=nidhisha`;
+    }
+
+   
+
+  </script>
+</body>
+</html>

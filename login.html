@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    
+    .login-container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      animation: fadeIn 0.5s ease forwards; /* Fade-in animation */
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .login-container h2 {
+      text-align: center;
+    }
+    
+    .login-container form {
+      margin-top: 20px;
+    }
+    
+    .login-container form input[type="text"],
+    .login-container form input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    
+    .login-container form button[type="submit"] {
+      width: 100%;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, filter 0.3s ease, transform 0.3s ease;
+    }
+    
+    .login-container form button[type="submit"]:hover {
+        filter: brightness(110%); /* Increase brightness on hover */
+      }
+      
+      .login-container form button[type="submit"]:active {
+        transform: scale(0.95); /* Scale-down effect when clicked */
+      }
+      
+      
+    .signup-link {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .signup-link a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .signup-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Login to CampusEats</h2>
+    <form id="login-form">
+      <input type="text" name="username" placeholder="Username" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <label><input type="radio" name="role" value="customer" checked>Customer</label>
+      <label><input type="radio" name="role" value="seller">Seller</label>
+      <button type="submit">Log In</button>
+    </form>
+    <div class="signup-link">
+      Don't have an account? <a href="http://localhost:5500/signup">Sign Up</a>
+    </div>
+  </div>
+  <script>
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent default form submission
+  
+      // Serialize form data into JSON
+      const formData = {};
+      Array.from(this.elements).forEach(element => {
+          if (element.name) {
+              if (element.type === 'radio') {
+                  if (element.checked) {
+                      formData[element.name] = element.value;
+                  }
+              } else {
+                  formData[element.name] = element.value;
+              }
+          }
+      });
+  
+      // Send data to server using AJAX
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', 'http://localhost:5500/login');
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onload = function() {
+          if (xhr.status === 201) {
+              const username = formData.username; // Get the username from the form data
+              // Redirect to edit_menu.html with username as a query parameter
+            if(formData.role  == "seller"){
+                window.location.href = `http://localhost:5500/dashboard?username=${username}`;
+            }else {
+              window.location.href = `http://localhost:5500/home?username=${username}`;
+          } 
+        }else {
+              alert('Wrong User Credentials');
+          }
+      };
+      xhr.send(JSON.stringify(formData));
+  });
+  
+  
+</script>
+
+</body>
+</html>

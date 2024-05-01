@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Menu - CampusEats</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+  
+    /* Navbar styles */
+    .navbar {
+      background-color: #007bff;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: fadeIn 0.5s ease; /* Fade-in animation */
+    }
+  
+    .navbar h1 {
+      margin: 0;
+    }
+  
+    .navbar button {
+      padding: 10px 20px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+  
+    .navbar button:hover {
+      background-color: #0056b3;
+    }
+  
+    .container {
+      width: 80%; /* Adjust width as needed */
+      padding: 40px 20px; /* Adjust padding as needed */
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin: 20px auto; /* Center the container */
+      animation: fadeIn 0.5s ease; /* Fade-in animation */
+    }
+  
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+  
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+  
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+  
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+  
+    .delete-button {
+      padding: 5px 10px;
+      cursor: pointer;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+  
+    .delete-button:hover {
+      background-color: #d32f2f;
+    }
+
+    #addItemForm {
+      margin-top: 20px;
+    }
+
+    #addItemForm .form-group {
+      margin-bottom: 10px;
+    }
+
+    #addItemForm label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    #addItemForm input[type="text"],
+    #addItemForm input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      box-sizing: border-box;
+    }
+
+    #addItemButton {
+      padding: 10px 20px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+
+    #addItemButton:hover {
+      background-color: #0056b3;
+    }
+    #saveChangesButton {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+
+    #saveChangesButton:hover {
+      background-color: #0056b3;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <div class="navbar">
+    <h1>Edit Menu</h1>
+    <div>
+      <button onclick="goHome()">Home</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Edit Menu Items</h2>
+    <form id="addItemForm">
+      <div class="form-group">
+        <label for="itemName">Item Name:</label>
+        <input type="text" id="itemName" name="itemName" required>
+      </div>
+
+      <div class="form-group">
+        <label for="itemPrice">Item Price:</label>
+        <input type="number" id="itemPrice" name="itemPrice" min="0" step="0.01" required>
+      </div>
+
+      <button type="submit" id="addItemButton">Add Item</button>
+    </form>
+
+    <h2>Current Menu Items</h2>
+    <table id="menuTable">
+      <thead>
+        <tr>
+          <th>Item Name</th>
+          <th>Price</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Existing items will be populated dynamically here -->
+      </tbody>
+    </table>
+
+  <!-- <button id="saveChangesButton">Save Changes</button> -->
+  </div>
+  <script>
+    let username;
+    const menuTable = document.getElementById("menuTable");
+
+    // Fetch and populate menu items from the server
+    function fetchMenuItems(username) {
+      fetch(`/menu/${username}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch menu items');
+          }
+          return response.json();
+        })
+        .then(menuItems => {
+          menuItems.forEach(item => {
+            addRowToMenuTable(item);
+          });
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          // Handle error (e.g., display an alert)
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      // Call fetchMenuItems function with the restaurant's username
+      const urlParams = new URLSearchParams(window.location.search);
+       username = urlParams.get('username');
+      fetchMenuItems(username);
+    });
+
+    /// Function to add a row to the menu table
+function addRowToMenuTable(item) {
+  const row = menuTable.querySelector("tbody").insertRow();
+  row.innerHTML = `
+    <td>${item.name}</td>
+    <td>${item.price.toFixed(2)}</td>
+    <td>
+      <button class="delete-button" onclick="deleteItem('${item._id}')">Delete</button>
+    </td>
+  `;
+}
+    function editItem(button) {
+      const row = button.closest("tr");
+      const inputs = row.querySelectorAll("input");
+      const updatedItem = {
+        name: inputs[0].value,
+        price: parseFloat(inputs[1].value)
+      };
+      // Update item in the menuItems array (simulating database update)
+      const index = row.rowIndex - 1; // Adjust for header row
+      menuItems[index] = updatedItem;
+    }
+
+    
+    document.getElementById("addItemForm").addEventListener("submit", function(event) {
+      event.preventDefault(); // Prevent form submission
+    
+      // Get form values
+      const itemName = document.getElementById("itemName").value;
+      const itemPrice = parseFloat(document.getElementById("itemPrice").value);
+    
+      // Extract username from the URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const username = urlParams.get('username');
+    
+      // Do something with the form values (e.g., save to database)
+      console.log("Item Name:", itemName);
+      console.log("Item Price:", itemPrice);
+    
+      // Send an AJAX request to add the item to the database
+      fetch(`/menu?username=${username}`, { // Include username in the URL
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: itemName,
+          price: itemPrice
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to add item');
+        }
+        alert('Item added successfully');
+        // Clear the input fields
+    document.getElementById("addItemForm").reset();
+        return response.json();
+      })
+      .then(newItem => {
+        // Add the new item to the menu table
+        addRowToMenuTable(newItem);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        // Handle error (e.g., display an alert)
+      });
+    });
+    
+    function deleteItem(itemId) {
+      // Extract username from the URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const username = urlParams.get('username');
+      
+      // Send an AJAX request to delete the item from the restaurant's menu
+      fetch(`/menu/${username}/${itemId}`, {
+        method: 'DELETE'
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to delete item');
+        }
+        // Show success message
+        alert('Item deleted successfully');
+        // Refresh the page after a short delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 1); // Refresh after 1 second (1000 milliseconds)
+      })
+      .catch(error => {
+        console.error('Error deleting item:', error); // Log the error
+        alert('Failed to delete item. Please try again later.'); // Show an error message to the user
+      });
+    }
+
+
+    function goHome() {
+      window.location.href = `http://localhost:5500/dashboard?username=${username}`;
+    }
+
+    function logout() {
+      window.location.href = `http://localhost:5500/login`;
+    }
+    
+  </script>
+</body>
+</html>

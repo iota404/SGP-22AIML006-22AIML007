@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danny's Orders</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .navbar {
+      background-color: #007bff;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: fadeIn 0.5s ease; /* Fade-in animation */
+    }
+
+    .navbar h1 {
+      margin: 0;
+    }
+
+    .navbar button {
+      padding: 10px 20px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+
+    .navbar button:hover {
+      background-color: #0056b3;
+    }
+
+    .container {
+      width: 80%; /* Adjust width as needed */
+      padding: 40px 20px; /* Adjust padding as needed */
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-top: auto;
+      margin-bottom: auto;
+      overflow-x: auto; /* Enable horizontal scrolling */
+      animation: fadeIn 0.5s ease; /* Fade-in animation */
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #007bff;
+      color: white;
+      position: sticky; /* Stick the header */
+      top: 0; /* Position at the top */
+      z-index: 1; /* Ensure it stays on top of other content */
+    }
+
+    td {
+      background-color: #fff; /* Make background white to avoid overlapping with header */
+    }
+
+    .status-select {
+      padding: 5px 10px;
+      cursor: pointer;
+      border: 1px solid #ddd; /* Add border */
+      border-radius: 5px;
+      transition: border-color 0.3s; /* Add transition for border color change */
+    }
+
+    .status-select:focus {
+      border-color: #007bff; /* Change border color on focus */
+    }
+
+    .finish-button {
+      padding: 5px 10px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+      display: none; /* Initially hidden */
+    }
+
+    .finish-button:hover {
+      background-color: #0056b3;
+    }
+
+    .finished {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Button hover effect */
+    .navbar button:hover,
+    .finish-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <button onclick="goHome()">Home</button>
+    <h1>Orders</h1>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <div class="container">
+    <h2>Orders</h2>
+    <table id="ordersContainer">
+    </table>
+  </div>
+
+  <script>
+    let username;
+    // Fetch orders when the page loads
+    document.addEventListener("DOMContentLoaded", function() {
+      // Extract username from the URL
+      const urlParams = new URLSearchParams(window.location.search);
+       username = urlParams.get('username');
+      fetchOrders(username);
+  });
+    const ordersContainer = document.getElementById("ordersContainer");
+
+        // Function to fetch orders
+        function fetchOrders(username) {
+            fetch(`/orders/${username}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch orders');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const orders = data.orders;
+                    renderOrders(orders);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Handle error (e.g., display an alert)
+                });
+        }
+
+        // Function to render orders on the webpage
+        function renderOrders(orders) {
+            ordersContainer.innerHTML = ""; // Clear previous content
+
+            orders.forEach(order => {
+                const orderElement = document.createElement("div");
+                orderElement.innerHTML = `
+                    <p>User: ${order.user}</p>
+                    <p>Total Price: ₹ ${order.totalPrice}</p>
+                    <p>Status: 
+                        <select id="status-select-${order._id}" class="status-select" onchange="changeStatus('${order._id}', this)">
+                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="rejected" ${order.status === 'rejected' ? 'selected' : ''}>Reject</option>
+                            <option value="in-process" ${order.status === 'in-process' ? 'selected' : ''}>In Process</option>
+                            <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+                        </select>
+                      <div>
+                        <button id="finish-button-${order._id}" class="finish-button" style="display: ${order.status === 'rejected' || order.status === 'completed' ? 'inline-block' : 'none'};" onclick="finishOrder('${order._id}', '${username}')">Finish</button>
+
+                      </div>
+                    </p>
+                    <p>Items:</p>
+                    <ul>
+                        ${order.items.map(item => `
+                            <li>
+                                ${item.menuItem} - Quantity: ${item.quantity} - Price: ${item.price}
+                            </li>
+                        `).join('')}
+                    </ul>
+                    <hr>
+                `;
+                ordersContainer.appendChild(orderElement);
+            });
+        }
+
+        function finishOrder(orderId,  username) {
+      
+          fetch(`/orders/${orderId}/${username}`, {
+              method: 'DELETE'
+          })
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('Failed to delete order');
+              }
+              const finishButton = document.querySelector("#finish-button-" + orderId);
+              finishButton.classList.add("finished");
+              finishButton.textContent = "Finished";
+              finishButton.disabled = true;
+              const statusSelect = document.querySelector("#status-select-" + orderId);
+              statusSelect.disabled = true;
+              console.log("Order ID:", orderId, "has been finished and removed from the restaurant's orders.");
+          })
+          .catch(error => {
+              console.error('Error finishing order:', error);
+          });
+      }
+        
+        
+
+        function changeStatus(orderId, selectElement) {
+          const newStatus = selectElement.value;
+          
+          fetch(`/orders/${username}/${orderId}/status`, {
+              method: 'PUT',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ status: newStatus })
+          })
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('Failed to update status');
+              }
+              // Refresh orders after status change
+              fetchOrders(username);
+
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              // Handle error (e.g., display an alert)
+          });
+        }
+
+    function goHome() {
+      window.location.href = `http://localhost:5500/dashboard?username=${username}`;
+    }
+
+    function logout() {
+      window.location.href = `http://localhost:5500/login`;
+    }
+  
+  </script>
+</body>
+</html>
