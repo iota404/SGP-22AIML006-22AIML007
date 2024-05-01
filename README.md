@@ -18,6 +18,8 @@ Welcome to the College Canteen Takeaway Ordering System repository! This project
 -->Payment Integration: Smooth payment process at checkout, displaying order details and total amount.
 
 
+
+
 **Technologies Used:**
 
 **Frontend:**
